@@ -177,6 +177,15 @@ public class SellerFn implements StatefulFunction {
     private void onIncrStockAsyncChkProd(Context context, Message message) {
         IncreaseStockChkProd increaseStockChkProd = message.as(IncreaseStockChkProd.TYPE);
         Product product = increaseStockChkProd.getProduct();
+        if (product == null) {
+            String log = String.format(getPartionText(context.self().id())
+                            + " increase stock fail as product not exist \n"
+                            + "productId: %s\n"
+                    , increaseStockChkProd.getIncreaseStock().getProductId()
+            );
+            showLog(log);
+            return;
+        }
         long productId = product.getId();
         if(product.isActive()) {
             int stockFnPartitionID = (int) (productId % Constants.nStockPartitions);
