@@ -111,6 +111,14 @@ public class StockFn implements StatefulFunction {
         DeleteProduct deleteProduct = message.as(DeleteProduct.TYPE);
         Long productId = deleteProduct.getProduct_id();
         StockItem stockItem = stockState.getItem(productId);
+        if (stockItem == null) {
+            String log = String.format(getPartionText(context.self().id())
+                            + "deleteItem failed as product not exist\n"
+                            + "productId: %s\n"
+                    , productId);
+            showLog(log);
+            return;
+        }
         stockItem.setUpdatedAt(LocalDateTime.now());
         stockItem.setIs_active(false);
         context.storage().set(STOCKSTATE, stockState);

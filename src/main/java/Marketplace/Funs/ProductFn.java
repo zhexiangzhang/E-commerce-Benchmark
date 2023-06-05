@@ -108,7 +108,14 @@ public class ProductFn implements StatefulFunction {
         GetProduct getProduct = message.as(GetProduct.TYPE);
         Long productId = getProduct.getProduct_id();
         Product product = productState.getProduct(productId);
-
+        if (product == null) {
+            String log = String.format(getPartionText(context.self().id())
+                    + "get product failed as product not exist\n"
+                    + "product id = " + productId
+                    + "\n");
+            showLog(log);
+            return;
+        }
         String log = String.format(getPartionText(context.self().id())
                 + "get product success\n"
                 + product.toString()
@@ -139,7 +146,14 @@ public class ProductFn implements StatefulFunction {
 
         ProductState productState = getProductState(context);
         Product product = productState.getProduct(productId);
-
+        if (product == null) {
+            String log = getPartionText(context.self().id())
+                    + "delete product failed as product not exist\n"
+                    + "product Id : " + productId
+                    + "\n";
+            showLog(log);
+            return;
+        }
         product.setActive(false);
         product.setUpdatedAt(LocalDateTime.now());
 
@@ -160,6 +174,14 @@ public class ProductFn implements StatefulFunction {
 
         ProductState productState = getProductState(context);
         Product product = productState.getProduct(productId);
+        if (product == null) {
+            String log = getPartionText(context.self().id())
+                    + "update product failed as product not exist\n"
+                    + "product Id : " + productId
+                    + "\n";
+            showLog(log);
+            return;
+        }
         product.setPrice(updatePrice.getPrice());
         product.setUpdatedAt(LocalDateTime.now());
         context.storage().set(PRODUCTSTATE, productState);
