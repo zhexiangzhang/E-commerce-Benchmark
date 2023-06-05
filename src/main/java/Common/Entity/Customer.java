@@ -1,217 +1,78 @@
 package Common.Entity;
 
+import Marketplace.Types.MsgToSeller.IncreaseStock;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
+@ToString
 public class Customer {
-    // olist data set
-    private long id;
 
-    // added
-    private String firstName;
-    private String lastName;
+    @JsonProperty("customerId")
+    private long customerId;
+
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("address")
     private String address;
-    private String complement;
-    private String birthDate;
 
     // olist data set
-    private String zipCodePrefix;
-    private String city;
-    private String state;
+    @JsonProperty("zipCode")
+    private String zipCode;
 
     // card
+    @JsonProperty("cardNumber")
     private String cardNumber;
+    @JsonProperty("cardSecurityNumber")
     private String cardSecurityNumber;
+    @JsonProperty("cardExpiration")
     private String cardExpiration;
-    private String cardHolderName;
-    private String cardType;
 
     // statistics
+    @JsonProperty("successPaymentCount")
     private int successPaymentCount;
+    @JsonProperty("failedPaymentCount")
     private int failedPaymentCount;
+    @JsonProperty("pendingDeliveriesCount")
     private int pendingDeliveriesCount;
+    @JsonProperty("deliveryCount")
     private int deliveryCount;
+    @JsonProperty("abandonedCartCount")
     private int abandonedCartCount;
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getComplement() {
-        return complement;
-    }
-
-    public void setComplement(String complement) {
-        this.complement = complement;
-    }
-
-    public String getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(String birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public String getZipCodePrefix() {
-        return zipCodePrefix;
-    }
-
-    public void setZipCodePrefix(String zipCodePrefix) {
-        this.zipCodePrefix = zipCodePrefix;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getCardNumber() {
-        return cardNumber;
-    }
-
-    public void setCardNumber(String cardNumber) {
-        this.cardNumber = cardNumber;
-    }
-
-    public String getCardSecurityNumber() {
-        return cardSecurityNumber;
-    }
-
-    public void setCardSecurityNumber(String cardSecurityNumber) {
-        this.cardSecurityNumber = cardSecurityNumber;
-    }
-
-    public String getCardExpiration() {
-        return cardExpiration;
-    }
-
-    public void setCardExpiration(String cardExpiration) {
-        this.cardExpiration = cardExpiration;
-    }
-
-    public String getCardHolderName() {
-        return cardHolderName;
-    }
-
-    public void setCardHolderName(String cardHolderName) {
-        this.cardHolderName = cardHolderName;
-    }
-
-    public String getCardType() {
-        return cardType;
-    }
-
-    public void setCardType(String cardType) {
-        this.cardType = cardType;
-    }
-
-    public int getSuccessPaymentCount() {
-        return successPaymentCount;
-    }
-
-    public void setSuccessPaymentCount(int successPaymentCount) {
-        this.successPaymentCount = successPaymentCount;
-    }
-
-    public int getFailedPaymentCount() {
-        return failedPaymentCount;
-    }
-
-    public void setFailedPaymentCount(int failedPaymentCount) {
-        this.failedPaymentCount = failedPaymentCount;
-    }
-
-    public int getPendingDeliveriesCount() {
-        return pendingDeliveriesCount;
-    }
-
-    public void setPendingDeliveriesCount(int pendingDeliveriesCount) {
-        this.pendingDeliveriesCount = pendingDeliveriesCount;
-    }
-
-    public int getDeliveryCount() {
-        return deliveryCount;
-    }
-
-    public void setDeliveryCount(int deliveryCount) {
-        this.deliveryCount = deliveryCount;
-    }
-
-    public int getAbandonedCartCount() {
-        return abandonedCartCount;
-    }
-
-    public void setAbandonedCartCount(int abandonedCartCount) {
-        this.abandonedCartCount = abandonedCartCount;
-    }
-
-    public BigDecimal getTotalSpentItems() {
-        return totalSpentItems;
-    }
-
-    public void setTotalSpentItems(BigDecimal totalSpentItems) {
-        this.totalSpentItems = totalSpentItems;
-    }
-
-    public BigDecimal getTotalSpentFreights() {
-        return totalSpentFreights;
-    }
-
-    public void setTotalSpentFreights(BigDecimal totalSpentFreights) {
-        this.totalSpentFreights = totalSpentFreights;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
+    @JsonProperty("totalSpentItems")
     private BigDecimal totalSpentItems;
+    @JsonProperty("totalSpentFreights")
     private BigDecimal totalSpentFreights;
 
-    // additional
-    private String data;
-
+    @JsonCreator
+    public Customer(
+            @JsonProperty("customerId") long customerId,
+            @JsonProperty("name") String name,
+            @JsonProperty("address") String address,
+            @JsonProperty("zipCode") String zipCode,
+            @JsonProperty("cardNumber") String cardNumber,
+            @JsonProperty("cardSecurityNumber") String cardSecurityNumber,
+            @JsonProperty("cardExpiration") String cardExpiration) {
+        this.customerId = customerId;
+        this.name = name;
+        this.address = address;
+        this.zipCode = zipCode;
+        this.cardNumber = cardNumber;
+        this.cardSecurityNumber = cardSecurityNumber;
+        this.cardExpiration = cardExpiration;
+        this.successPaymentCount = 0;
+        this.failedPaymentCount = 0;
+        this.pendingDeliveriesCount = 0;
+        this.deliveryCount = 0;
+        this.abandonedCartCount = 0;
+        this.totalSpentItems = BigDecimal.ZERO;
+        this.totalSpentFreights = BigDecimal.ZERO;
+    }
 }

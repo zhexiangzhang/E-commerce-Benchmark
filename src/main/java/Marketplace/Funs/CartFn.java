@@ -30,10 +30,6 @@ public class CartFn implements StatefulFunction {
     // Statefun Type ，Logical name = <namespace> + <name>
     static final TypeName TYPE = TypeName.typeNameOf(Constants.FUNS_NAMESPACE, "cart");
 
-    /*
-        I think no need to save custom ID in ValueSpec, we can get the ID by: String id = context.self().id();
-        also didnot find any usage of CUSTOMER, so didnot store it in ValueSpec
-    */
     //    static final ValueSpec<Long> CUSTOMERID = ValueSpec.named("customerId").withLongType();
     static final ValueSpec<CartState> CARTSTATE = ValueSpec.named("cartState").withCustomType(CartState.TYPE);
 
@@ -45,6 +41,10 @@ public class CartFn implements StatefulFunction {
 
     // for GET_CART_TYPE request, get items in cart and send to egress
     private static final TypeName ECOMMERCE_EGRESS = TypeName.typeNameOf(Constants.EGRESS_NAMESPACE, "egress");
+
+    private String getPartionText(String id) {
+        return String.format("\n[ CartFn partitionId %s ] \n", id);
+    }
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
@@ -58,6 +58,7 @@ public class CartFn implements StatefulFunction {
         }
         // client ---> cart (clear cart)
         else if (message.is(ClearCart.TYPE)) {
+            // TODO: 6/5/2023 有很大问题，等到用到的时候再说
             onClearCart(context);
         }
         // order ---> cart (send checkout result)
@@ -71,8 +72,12 @@ public class CartFn implements StatefulFunction {
         return context.done();
     }
 
+    private CartState getCartState(Context context) {
+        return context.storage().get(CARTSTATE).orElse(new CartState());
+    }
+
     private void Seal(Context context) throws Exception {
-        CartState cartState = context.storage().get(CARTSTATE).orElse(new CartState());
+        CartState cartState = getCartState(context);
         if (cartState.getStatus() == CartState.Status.CHECKOUT_SENT) {
             cartState.setStatus(CartState.Status.OPEN);
             cartState.clear();
@@ -83,15 +88,23 @@ public class CartFn implements StatefulFunction {
         }
     }
 
-    private void onAddToCart(Context context, Message message) {
+    private void showLog(String log) {
+        logger.info(log);
+//        System.out.println(log);
+    }
 
-        CartState cartState = context.storage().get(CARTSTATE).orElse(new CartState());
+    private void onAddToCart(Context context, Message message) {
+        CartState cartState = getCartState(context);
         AddToCart addToCart = message.as(AddToCart.TYPE);
         BasketItem item = addToCart.getItem();
         cartState.addItem(item.getProductId(), item);
         context.storage().set(CARTSTATE, cartState);
 
-        logger.info(String.format("Item {%s} add to cart {%s} success", item.getProductId(), context.self().id()));
+
+        String log = String.format(getPartionText(context.self().id())
+                        + "Item {%s} add to cart success\n"
+                , item.getProductId());
+        showLog(log);
     }
 
     private void onCheckoutCart(Context context, Message message) {
@@ -101,7 +114,7 @@ public class CartFn implements StatefulFunction {
 
         logger.info(String.format("checkout cart {%s}...........", context.self().id()));
 
-        CartState cartState = context.storage().get(CARTSTATE).orElse(new CartState());
+        CartState cartState = getCartState(context);
         String custumerId = context.self().id();
 
         if (cartState.getStatus() == CartState.Status.CHECKOUT_SENT ){
@@ -150,20 +163,13 @@ public class CartFn implements StatefulFunction {
 
 
     private void onGetCart(Context context) {
-        CartState cartState = context.storage().get(CARTSTATE).orElse(new CartState());
+        CartState cartState = getCartState(context);
 
-        String cartContent = cartState.getCartConent();
-
-//        final EgressRecord egressRecord = new EgressRecord("getCart", cartContent);
-//        context.send(
-//                // create new EgressMessageBuilder object，target output address is ECOMMERCE_EGRESS
-//                EgressMessageBuilder.forEgress(ECOMMERCE_EGRESS)
-//                        // EGRESS_RECORD_JSON_TYPE:messgae type，egressRecord:message content
-//                        .withCustomType(EGRESS_RECORD_JSON_TYPE, egressRecord)
-//                        .build());
-//
-
-        logger.info(String.format("get cart {%s} success", context.self().id()));
-        logger.info(String.format("cart content: {%s}", cartContent));
+        String log = String.format(getPartionText(context.self().id())
+                        + "get cart success\n"
+                        + "cart status: {%s}\n"
+                        + "cart content: {\n%s}\n"
+                , cartState.getStatus(), cartState.getCartConent());
+        showLog(log);
     }
 }
