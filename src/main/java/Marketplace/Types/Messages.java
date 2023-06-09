@@ -30,54 +30,6 @@ public final class Messages {
                     bytes -> mapper.readValue(bytes, TmpUserPofile.class)
             );
 
-    /* ingress (customer) -> cart */
-//    public static final Type<AddToCart> ADD_TO_CART_TYPE =
-//            SimpleType.simpleImmutableTypeFrom(
-//                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "AddToCart"),
-//                    mapper::writeValueAsBytes,
-//                    bytes -> mapper.readValue(bytes, AddToCart.class));
-
-    /* ingress (customer) -> cart */
-//    public static final Type<CheckoutCart> CHECKOUT_CART_TYPE =
-//            SimpleType.simpleImmutableTypeFrom(
-//                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "CheckoutCart"),
-//                    mapper::writeValueAsBytes,
-//                    bytes -> mapper.readValue(bytes, CheckoutCart.class));
-
-//    /* ingress (customer) -> cart */
-//    public static final Type<ClearCart> CLEAR_CART_TYPE =
-//            SimpleType.simpleImmutableTypeFrom(
-//                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "ClearCart"),
-//                    mapper::writeValueAsBytes,
-//                    bytes -> mapper.readValue(bytes, ClearCart.class));
-
-    /* cart -> order */
-    public static final Type<Checkout> CHECKOUT_TYPE =
-            SimpleType.simpleImmutableTypeFrom(
-                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "Checkout"),
-                    mapper::writeValueAsBytes,
-                    bytes -> mapper.readValue(bytes, Checkout.class));
-    /* order -> cart */
-    public static final Type<String> CHECKOUT_FINISH_TYPE =
-            SimpleType.simpleImmutableTypeFrom(
-                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "CheckoutFinish"),
-                    mapper::writeValueAsBytes,
-                    bytes -> mapper.readValue(bytes, String.class)
-            );
-
-    //    这种应该没必要写成一个类
-//    public static final Type<GetCart> GET_CART_TYPE =
-//            SimpleType.simpleImmutableTypeFrom(
-//                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "GetCart"),
-//                    mapper::writeValueAsBytes,
-//                    bytes -> mapper.readValue(bytes, GetCart.class));
-//    public static final Type<Long> GET_CART_TYPE =
-//            SimpleType.simpleImmutableTypeFrom(
-//                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "GetCart"),
-//                    mapper::writeValueAsBytes,
-//                    bytes -> mapper.readValue(bytes, Long.class));
-
-
 
     public static final Type<EgressRecord> EGRESS_RECORD_JSON_TYPE =
             SimpleType.simpleImmutableTypeFrom(

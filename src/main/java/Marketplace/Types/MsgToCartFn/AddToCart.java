@@ -12,26 +12,6 @@ import org.apache.flink.statefun.sdk.java.types.SimpleType;
 import org.apache.flink.statefun.sdk.java.types.Type;
 
 
-//@Getter
-//@Setter
-//@AllArgsConstructor(onConstructor = @__(@JsonCreator))
-//public class AddToCart {
-//
-//    private static final ObjectMapper mapper = new ObjectMapper();
-//
-//    public static final Type<AddToCart> TYPE =
-//            SimpleType.simpleImmutableTypeFrom(
-//                    TypeName.typeNameOf(Constants.TYPES_NAMESPACE, "AddToCart"),
-//                    mapper::writeValueAsBytes,
-//                    bytes -> mapper.readValue(bytes, AddToCart.class));
-//
-//    @JsonProperty("customerId")
-//    private Long customerId;
-//
-//    @JsonProperty("item")
-//    private BasketItem item;
-//}
-
 @Getter
 @Setter
 public class AddToCart {

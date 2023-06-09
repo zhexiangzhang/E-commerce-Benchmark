@@ -35,13 +35,18 @@ public class CustomerFn implements StatefulFunction {
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
-        // client ---> customer (init customer type)
-        if (message.is(InitCustomer.TYPE)) {
-            onInitCustomer(context, message);
-        }
-        // client ---> seller (get seller type)
-        else if (message.is(GetCustomer.TYPE)) {
-            onGetCustomer(context);
+        try {
+            // client ---> customer (init customer type)
+            if (message.is(InitCustomer.TYPE)) {
+                onInitCustomer(context, message);
+            }
+            // client ---> seller (get seller type)
+            else if (message.is(GetCustomer.TYPE)) {
+                onGetCustomer(context);
+            }
+        } catch (Exception e) {
+            System.out.println("Exception in CustomerFn !!!!!!!!!!!!!!!!");
+            e.printStackTrace();
         }
         return context.done();
     }

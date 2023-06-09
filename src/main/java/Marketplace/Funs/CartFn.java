@@ -7,16 +7,14 @@ import Common.Entity.CustomerCheckout;
 import Marketplace.Constant.Constants;
 import Marketplace.Types.Entity.Checkout;
 
-import Marketplace.Types.MsgToCartFn.AddToCart;
-import Marketplace.Types.MsgToCartFn.CheckoutCart;
-import Marketplace.Types.MsgToCartFn.GetCart;
-import Marketplace.Types.MsgToCartFn.ClearCart;
+import Marketplace.Types.MsgToCartFn.*;
 
 import Marketplace.Types.Messages;
 import Marketplace.Types.State.CartState;
 import org.apache.flink.statefun.sdk.java.*;
 import org.apache.flink.statefun.sdk.java.message.Message;
 import org.apache.flink.statefun.sdk.java.message.MessageBuilder;
+import org.apache.flink.statefun.sdk.java.types.Type;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
@@ -48,27 +46,33 @@ public class CartFn implements StatefulFunction {
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
-        // client ---> cart (add some item to cart)
-        if (message.is(AddToCart.TYPE)) {
-            onAddToCart(context, message);
+        try {
+            // client ---> cart (add some item to cart)
+            if (message.is(AddToCart.TYPE)) {
+                onAddToCart(context, message);
+            }
+            // client ---> cart (send checkout request)
+            else if (message.is(CheckoutCart.TYPE)) {
+                onCheckoutAsyncBegin(context, message);
+            }
+            // client ---> cart (clear cart)
+            else if (message.is(ClearCart.TYPE)) {
+                // TODO: 6/5/2023 有很大问题，等到用到的时候再说
+                onClearCart(context);
+            }
+            // order ---> cart (send checkout result)
+            else if (message.is(CheckoutCartResult.TYPE)) {
+                onCheckoutCartResult(context, message);
+            }
+            // order ---> cart (get cart content)
+            else if (message.is(GetCart.TYPE)) {
+                onGetCart(context);
+            }
+        } catch (Exception e) {
+            System.out.println("Exception in CartFn !!!!!!!!!!!!!!!!");
+            e.printStackTrace();
         }
-        // client ---> cart (send checkout request)
-        else if (message.is(CheckoutCart.TYPE)) {
-            onCheckoutCart(context, message);
-        }
-        // client ---> cart (clear cart)
-        else if (message.is(ClearCart.TYPE)) {
-            // TODO: 6/5/2023 有很大问题，等到用到的时候再说
-            onClearCart(context);
-        }
-        // order ---> cart (send checkout result)
-        else if (message.is(Messages.CHECKOUT_FINISH_TYPE)) {
-            onCheckoutFinish(context, message);
-        }
-        // order ---> cart (get cart content)
-        else if (message.is(GetCart.TYPE)) {
-            onGetCart(context);
-        }
+
         return context.done();
     }
 
@@ -76,21 +80,14 @@ public class CartFn implements StatefulFunction {
         return context.storage().get(CARTSTATE).orElse(new CartState());
     }
 
-    private void Seal(Context context) throws Exception {
-        CartState cartState = getCartState(context);
-        if (cartState.getStatus() == CartState.Status.CHECKOUT_SENT) {
-            cartState.setStatus(CartState.Status.OPEN);
-            cartState.clear();
-            context.storage().set(CARTSTATE, cartState);
-        } else {
-            System.out.println("Cannot seal a cart that has not been checked out");
-            throw new Exception("Cannot seal a cart that has not been checked out");
-        }
-    }
-
     private void showLog(String log) {
         logger.info(log);
 //        System.out.println(log);
+    }
+
+    private void showLogPrt(String log) {
+//        logger.info(log);
+        System.out.println(log);
     }
 
     private void onAddToCart(Context context, Message message) {
@@ -107,45 +104,73 @@ public class CartFn implements StatefulFunction {
         showLog(log);
     }
 
-    private void onCheckoutCart(Context context, Message message) {
-        // TODO: 5/17/2023 与订单服务交互，生成订单，需要完成服务器完成订单后发送过来消息的else if
-
+    private void onCheckoutAsyncBegin(Context context, Message message) {
         CustomerCheckout customerCheckout = message.as(CheckoutCart.TYPE).getCustomerCheckout();
 
-        logger.info(String.format("checkout cart {%s}...........", context.self().id()));
-
         CartState cartState = getCartState(context);
-        String custumerId = context.self().id();
+        String cartId = context.self().id();
+        String customerId = String.valueOf(customerCheckout.getCustomerId());
 
         if (cartState.getStatus() == CartState.Status.CHECKOUT_SENT ){
-            System.out.println(custumerId + " checkout already sent");
-//                throw new Exception(custumerId + "checkout in progress");
-        } else {
-            if (cartState.getItems().isEmpty()) {
-                System.out.println(custumerId + " cart is empty");
-//              throw new Exception(custumerId + " cart is empty");
-            } else {
-                Checkout checkout = new Checkout(LocalDateTime.now(), customerCheckout, cartState.getItems());
-                cartState.setStatus(CartState.Status.CHECKOUT_SENT);
-                context.storage().set(CARTSTATE, cartState);
-                context.send(MessageBuilder.forAddress(OrderFn.TYPE, "orderService0")
-                        .withCustomType(CHECKOUT_TYPE, checkout)
-                        .build());
+            String log = getPartionText(context.self().id())
+                    + "checkout is in process....please wait\n";
+            showLog(log);
+            return;
+        }
+        if (cartState.getItems().isEmpty()) {
+            String log = getPartionText(context.self().id())
+                    + "checkout fail as cart is empty\n";
+            showLog(log);
+            return;
+        }
+        if(!cartId.equals(customerId)) {
+            String log = getPartionText(context.self().id())
+                    + "checkout fail as customer id is not match\n";
+            showLog(log);
+            return;
+        }
 
-                System.out.println("checkout has been sent to order...........");
-            }
+        Checkout checkout = new Checkout(LocalDateTime.now(), customerCheckout, cartState.getItems());
+
+        String orderPartitionId = String.valueOf((int) (Math.random() * Constants.nOrderPartitions));
+        sendMessage(context, OrderFn.TYPE, orderPartitionId, Checkout.TYPE, checkout);
+
+        cartState.setStatus(CartState.Status.CHECKOUT_SENT);
+        context.storage().set(CARTSTATE, cartState);
+
+        String log = getPartionText(context.self().id())
+                + "checkout message send........\n";
+        showLogPrt(log);
+    }
+
+    private void Seal(Context context){
+        CartState cartState = getCartState(context);
+        if (cartState.getStatus() == CartState.Status.CHECKOUT_SENT) {
+            cartState.setStatus(CartState.Status.OPEN);
+            cartState.clear();
+            context.storage().set(CARTSTATE, cartState);
+            String log = getPartionText(context.self().id())
+                    + "checkout success, cart ID: " + context.self().id() + "\n";
+            showLog(log);
+        } else {
+            System.out.println("Cannot seal a cart that has not been checked out");
         }
     }
 
-    private void onCheckoutFinish(Context context, Message message) throws Exception {
-        System.out.println("checkout finish...........");
-
-        String checkoutResult = message.as(Messages.CHECKOUT_FINISH_TYPE);
-
-        if (checkoutResult.equals("success")) {
+    private void onCheckoutCartResult(Context context, Message message) throws Exception {
+        CartState cartState = getCartState(context);
+        CheckoutCartResult checkoutCartResult = message.as(CheckoutCartResult.TYPE);
+        boolean isSuccess = checkoutCartResult.isSuccess();
+        if (isSuccess) {
             Seal(context);
         } else {
-            System.out.println("checkout fail");
+            if (cartState.getStatus() == CartState.Status.CHECKOUT_SENT) {
+                cartState.setStatus(CartState.Status.OPEN);
+                context.storage().set(CARTSTATE, cartState);
+            }
+            String log = getPartionText(context.self().id())
+                    + "checkout fail" + context.self().id() + "\n";
+            showLog(log);
         }
     }
 
@@ -171,5 +196,12 @@ public class CartFn implements StatefulFunction {
                         + "cart content: {\n%s}\n"
                 , cartState.getStatus(), cartState.getCartConent());
         showLog(log);
+    }
+
+    private <T> void sendMessage(Context context, TypeName addressType, String addressId, Type<T> messageType, T messageContent) {
+        Message msg = MessageBuilder.forAddress(addressType, addressId)
+                .withCustomType(messageType, messageContent)
+                .build();
+        context.send(msg);
     }
 }

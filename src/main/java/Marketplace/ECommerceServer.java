@@ -14,12 +14,15 @@ public final class ECommerceServer {
         final StatefulFunctions functions = new StatefulFunctions();
         functions.withStatefulFunction(TempUserLoginFn.SPEC);
         functions.withStatefulFunction(TempGreetFn.SPEC);
+        functions.withStatefulFunction(TestFn.SPEC);
+
         functions.withStatefulFunction(CartFn.SPEC);
         functions.withStatefulFunction(OrderFn.SPEC);
         functions.withStatefulFunction(SellerFn.SPEC);
         functions.withStatefulFunction(StockFn.SPEC);
         functions.withStatefulFunction(ProductFn.SPEC);
         functions.withStatefulFunction(CustomerFn.SPEC);
+
 
         final RequestReplyHandler handler = functions.requestReplyHandler();
         final Undertow httpServer =

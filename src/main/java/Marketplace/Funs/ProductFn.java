@@ -46,28 +46,33 @@ public class ProductFn implements StatefulFunction {
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
-        // seller --> product (increase stock)
-        if (message.is(IncreaseStock.TYPE)) {
-            onIncreaseStockAsyncCheck(context, message);
-        // client --> product (get product)
-        } else if (message.is(GetProduct.TYPE)) {
-            onGetProduct(context, message);
-        }
-        // seller --> product (getAllProducts of seller)
-        else if (message.is(GetAllProducts.TYPE)) {
-            onGetAllProducts(context, message);
-        }
-        // seller --> product (add product)
-        else if (message.is(AddProduct.TYPE)) {
-            onAddProduct(context, message);
-        }
-        // seller --> product (delete product)
-        else if (message.is(DeleteProduct.TYPE)) {
-            onDeleteProduct(context, message);
-        }
-        // seller --> product (update price)
-        else if (message.is(UpdatePrice.TYPE)) {
-            onUpdatePrice(context, message);
+        try{
+            // seller --> product (increase stock)
+            if (message.is(IncreaseStock.TYPE)) {
+                onIncreaseStockAsyncCheck(context, message);
+                // client --> product (get product)
+            } else if (message.is(GetProduct.TYPE)) {
+                onGetProduct(context, message);
+            }
+            // seller --> product (getAllProducts of seller)
+            else if (message.is(GetAllProducts.TYPE)) {
+                onGetAllProducts(context, message);
+            }
+            // seller --> product (add product)
+            else if (message.is(AddProduct.TYPE)) {
+                onAddProduct(context, message);
+            }
+            // seller --> product (delete product)
+            else if (message.is(DeleteProduct.TYPE)) {
+                onDeleteProduct(context, message);
+            }
+            // seller --> product (update price)
+            else if (message.is(UpdatePrice.TYPE)) {
+                onUpdatePrice(context, message);
+            }
+        } catch (Exception e) {
+            System.out.println("Exception in ProductFn !!!!!!!!!!!!!");
+            e.printStackTrace();
         }
         return context.done();
     }

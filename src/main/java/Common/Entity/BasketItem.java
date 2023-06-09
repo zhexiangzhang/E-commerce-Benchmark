@@ -22,12 +22,4 @@ public class BasketItem {
     @JsonProperty("quantity") private int quantity;
 //    @JsonProperty("unavailable") private boolean unavailable;
 
-//    @Override
-//    public String toString() {
-//        return "BasketItem{" +
-//                "productId=" + productId +
-//                ", unitPrice=" + unitPrice +
-//                ", quantity=" + quantity +
-//                '}';
-//    }
 }
