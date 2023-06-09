@@ -1,5 +1,6 @@
 package Marketplace.Funs;
 
+import Common.Entity.BasketItem;
 import Common.Entity.Product;
 import Common.Entity.StockItem;
 import Marketplace.Constant.Constants;
@@ -8,6 +9,7 @@ import Marketplace.Types.MsgToSeller.AddProduct;
 import Marketplace.Types.MsgToSeller.DeleteProduct;
 import Marketplace.Types.MsgToSeller.IncreaseStock;
 import Marketplace.Types.MsgToSeller.TaskFinish;
+import Marketplace.Types.MsgToStock.CheckoutResv;
 import Marketplace.Types.State.StockState;
 import org.apache.flink.statefun.sdk.java.*;
 import org.apache.flink.statefun.sdk.java.message.Message;
@@ -40,13 +42,27 @@ public class StockFn implements StatefulFunction {
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
-        if (message.is(IncreaseStock.TYPE)) {
-            onIncreaseStock(context, message);
-        } else if (message.is(AddProduct.TYPE)) {
-            onAddItem(context, message);
-        } else if (message.is(DeleteProduct.TYPE)) {
-            onDeleteItem(context, message);
+        try {
+            // seller ---> stock (increase stock)
+            if (message.is(IncreaseStock.TYPE)) {
+                onIncreaseStock(context, message);
+            }
+            // seller ---> stock (add product)
+            else if (message.is(AddProduct.TYPE)) {
+                onAddItem(context, message);
+            }
+            // seller ---> stock (delete product)
+            else if (message.is(DeleteProduct.TYPE)) {
+                onDeleteItem(context, message);
+                // order ---> stock (attempt reservsation)
+            } else if (message.is(CheckoutResv.TYPE)) {
+                onHandleCheckoutResv(context, message);
+            }
+        } catch (Exception e) {
+            System.out.println("StockFn apply error !!!!!!!!!!!!!!!");
+            e.printStackTrace();
         }
+
         return context.done();
     }
 
@@ -74,7 +90,8 @@ public class StockFn implements StatefulFunction {
                 , productId);
         showLog(log);
 
-        String result = "IncreaseStock success, productId: " + productId + ", number: " + num;
+        String result = "IncreaseStock success, productId: " + productId + ", number: " + num
+                + ", after increase: " + stockState.getItem(productId).getQty_available();
         sendMessageToCaller(context, Types.stringType(), result);
     }
 
@@ -130,6 +147,85 @@ public class StockFn implements StatefulFunction {
         showLog(log);
 
         sendTaskResToSeller(context, productId, Enums.TaskType.DeleteProductType);
+    }
+
+    private void onHandleCheckoutResv(Context context, Message message) {
+        CheckoutResv checkoutResv = message.as(CheckoutResv.TYPE);
+
+        BasketItem basketItem = checkoutResv.getItem();
+        long productId = basketItem.getProductId();
+        int quantity = basketItem.getQuantity();
+
+        Enums.TaskType taskType = checkoutResv.getTaskType();
+
+        switch (taskType) {
+            case AttemptReservationsType:
+                Enums.ItemStatus itemStatus = onAtptResvReq(context, productId, quantity);
+                checkoutResv.setItemStatus(itemStatus);
+                break;
+            case CancelReservationsType:
+                onCancelResvReq(context, productId, quantity);
+                break;
+            case ConfirmReservationsType:
+                onConfirmResvReq(context, productId, quantity);
+                break;
+            default:
+                break;
+        }
+
+        sendMessageToCaller(
+                context,
+                CheckoutResv.TYPE,
+                checkoutResv);
+    }
+
+    private Enums.ItemStatus onAtptResvReq(Context context, long productId, int quantity) {
+        StockState stockState = getStockState(context);
+        StockItem stockItem = stockState.getItem(productId);
+
+        String partitionText = getPartionText(context.self().id());
+        String productIdText = "productId: " + productId + "\n";
+
+        if (!stockItem.getIs_active()) {
+            String log = partitionText + "atptResvReq failed as product not active\n" + productIdText;
+            showLog(log);
+            return Enums.ItemStatus.DELETED;
+        }
+        if (stockItem.getQty_available() - stockItem.getQty_reserved() < quantity) {
+            String log = partitionText + "atptResvReq failed as stock not enough\n"
+                    + "qty_available: " + stockItem.getQty_available() + "\n"
+                    + "need: " + quantity + "\n"
+                    + productIdText;
+            showLog(log);
+            return Enums.ItemStatus.OUT_OF_STOCK;
+        } else {
+            stockItem.setQty_reserved(stockItem.getQty_reserved() + quantity);
+            stockItem.setUpdatedAt(LocalDateTime.now());
+            context.storage().set(STOCKSTATE, stockState);
+            String log = partitionText + "atptResvReq success\n"
+                    + "qty_available: " + stockItem.getQty_available() + "\n"
+                    + "need: " + quantity + "\n"
+                    + productIdText;
+            showLog(log);
+            return Enums.ItemStatus.IN_STOCK;
+        }
+    }
+
+    private void onCancelResvReq(Context context, long productId, int quantity) {
+        StockState stockState = getStockState(context);
+        StockItem stockItem = stockState.getItem(productId);
+        stockItem.setQty_reserved(stockItem.getQty_reserved() - quantity);
+        stockItem.setUpdatedAt(LocalDateTime.now());
+        context.storage().set(STOCKSTATE, stockState);
+    }
+
+    private void onConfirmResvReq(Context context, long productId, int quantity) {
+        StockState stockState = getStockState(context);
+        StockItem stockItem = stockState.getItem(productId);
+        stockItem.setQty_available(stockItem.getQty_available() - quantity);
+        stockItem.setQty_reserved(stockItem.getQty_reserved() - quantity);
+        stockItem.setUpdatedAt(LocalDateTime.now());
+        context.storage().set(STOCKSTATE, stockState);
     }
 
     private <T> void sendMessage(Context context, TypeName addressType, String addressId, Type<T> messageType, T messageContent) {

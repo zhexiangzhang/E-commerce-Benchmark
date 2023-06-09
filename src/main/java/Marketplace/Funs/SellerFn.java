@@ -43,47 +43,53 @@ public class SellerFn implements StatefulFunction {
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
-        // client ---> seller (init seller type)
-        if (message.is(InitSeller.TYPE)) {
-            onInitSeller(context, message);
-        }
-        // client ---> seller (get seller type)
-        else if (message.is(GetSeller.TYPE)) {
-            onGetSeller(context);
-        }
-        // client ---> seller (get all products of seller)
-        else if (message.is(GetProducts.TYPE)) {
-            onGetProdAsyncBegin(context);
-        }
-        // client ---> seller ( delete product)
-        else if (message.is(DeleteProduct.TYPE)) {
-            onDeleteProdAsyncBegin(context, message);
-        }
-        // client ---> seller (update price)
-        else if (message.is(UpdatePrice.TYPE)) {
-            onUpdatePrice(context, message);
-        }
-        // client ---> seller (increase stock)
-        else if (message.is(IncreaseStock.TYPE)) {
-            onIncrStockAsyncBegin(context, message);
-        }
-        // product ---> seller (get the product info to check if it is still active)
-        else if (message.is(IncreaseStockChkProd.TYPE)) {
-            onIncrStockAsyncChkProd(context, message);
-        }
-        // client ---> seller ( add product)
-        else if (message.is(AddProduct.TYPE)) {
-            onAddProdAsyncBegin(context, message);
-        }
-        // stock / product ---> seller (the result of async task)
-        else if (message.is(TaskFinish.TYPE)) {
-            onAsyncTaskFinish(context, message);
-        }
-        // xxxxx ---> seller
-        else if (message.is(Types.stringType())) {
-            String result = message.as(Types.stringType());
-            Long sellerId = Long.parseLong(context.self().id());
-            logger.info(String.format("Seller ID: %s", sellerId, result));
+        try {
+            // client ---> seller (init seller type)
+            if (message.is(InitSeller.TYPE)) {
+                onInitSeller(context, message);
+            }
+            // client ---> seller (get seller type)
+            else if (message.is(GetSeller.TYPE)) {
+                onGetSeller(context);
+            }
+            // client ---> seller (get all products of seller)
+            else if (message.is(GetProducts.TYPE)) {
+                onGetProdAsyncBegin(context);
+            }
+            // client ---> seller ( delete product)
+            else if (message.is(DeleteProduct.TYPE)) {
+                onDeleteProdAsyncBegin(context, message);
+            }
+            // client ---> seller (update price)
+            else if (message.is(UpdatePrice.TYPE)) {
+                onUpdatePrice(context, message);
+            }
+            // client ---> seller (increase stock)
+            else if (message.is(IncreaseStock.TYPE)) {
+                onIncrStockAsyncBegin(context, message);
+            }
+            // product ---> seller (get the product info to check if it is still active)
+            else if (message.is(IncreaseStockChkProd.TYPE)) {
+                onIncrStockAsyncChkProd(context, message);
+            }
+            // client ---> seller ( add product)
+            else if (message.is(AddProduct.TYPE)) {
+                onAddProdAsyncBegin(context, message);
+            }
+            // stock / product ---> seller (the result of async task)
+            else if (message.is(TaskFinish.TYPE)) {
+                onAsyncTaskFinish(context, message);
+            }
+            // xxxxx ---> seller
+            else if (message.is(Types.stringType())) {
+                String result = message.as(Types.stringType());
+                Long sellerId = Long.parseLong(context.self().id());
+                logger.info(String.format("Seller ID: %s", sellerId, result));
+            }
+
+        } catch (Exception e) {
+            System.out.println("SellerFn apply error !!!!!!!!!!!!!!!");
+            e.printStackTrace();
         }
 
         return context.done();
