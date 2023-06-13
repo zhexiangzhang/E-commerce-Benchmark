@@ -22,6 +22,8 @@ public final class ECommerceServer {
         functions.withStatefulFunction(StockFn.SPEC);
         functions.withStatefulFunction(ProductFn.SPEC);
         functions.withStatefulFunction(CustomerFn.SPEC);
+        functions.withStatefulFunction(PaymentFn.SPEC);
+        functions.withStatefulFunction(ShipmentFn.SPEC);
 
 
         final RequestReplyHandler handler = functions.requestReplyHandler();
