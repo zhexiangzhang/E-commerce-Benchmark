@@ -32,4 +32,32 @@ public class Enums {
         // Strictly speaking it is not item status, but used as a placeholder.
         UNKNOWN
     };
+
+    public enum OrderStatus
+    {
+        // OrderFn
+        CREATED,
+        PROCESSING,
+        CANCLED,
+        INVOICED,
+        SHIPPED,
+        DELIVERED,
+        PAYMENT_FAILED,
+        PAYMENT_SUCCESS,
+        PAYMENT_PROCESSED
+    };
+
+    public enum PackageStatus
+    {
+        CREATED,
+        SHIPPED,
+        DELIVERED
+    }
+
+    public enum NotificationType
+    {
+        notify_failed_payment,
+        notify_success_payment,
+        notify_shipment
+    }
 }

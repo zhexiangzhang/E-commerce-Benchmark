@@ -5,11 +5,10 @@ import java.util.logging.Logger;
 import Common.Entity.BasketItem;
 import Common.Entity.CustomerCheckout;
 import Marketplace.Constant.Constants;
-import Marketplace.Types.Entity.Checkout;
+import Common.Entity.Checkout;
 
 import Marketplace.Types.MsgToCartFn.*;
 
-import Marketplace.Types.Messages;
 import Marketplace.Types.State.CartState;
 import org.apache.flink.statefun.sdk.java.*;
 import org.apache.flink.statefun.sdk.java.message.Message;
@@ -18,8 +17,6 @@ import org.apache.flink.statefun.sdk.java.types.Type;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
-
-import static Marketplace.Types.Messages.*;
 
 public class CartFn implements StatefulFunction {
 
@@ -41,7 +38,7 @@ public class CartFn implements StatefulFunction {
     private static final TypeName ECOMMERCE_EGRESS = TypeName.typeNameOf(Constants.EGRESS_NAMESPACE, "egress");
 
     private String getPartionText(String id) {
-        return String.format("\n[ CartFn partitionId %s ] \n", id);
+        return String.format("[ CartFn partitionId %s ] ", id);
     }
 
     @Override
@@ -57,7 +54,6 @@ public class CartFn implements StatefulFunction {
             }
             // client ---> cart (clear cart)
             else if (message.is(ClearCart.TYPE)) {
-                // TODO: 6/5/2023 有很大问题，等到用到的时候再说
                 onClearCart(context);
             }
             // order ---> cart (send checkout result)
@@ -132,6 +128,7 @@ public class CartFn implements StatefulFunction {
 
         Checkout checkout = new Checkout(LocalDateTime.now(), customerCheckout, cartState.getItems());
 
+        // order is chose randomly !!!
         String orderPartitionId = String.valueOf((int) (Math.random() * Constants.nOrderPartitions));
         sendMessage(context, OrderFn.TYPE, orderPartitionId, Checkout.TYPE, checkout);
 

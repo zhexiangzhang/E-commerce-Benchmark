@@ -1,7 +1,7 @@
 package Marketplace.Types.State;
 
 import Marketplace.Constant.Constants;
-import Marketplace.Types.Entity.Checkout;
+import Common.Entity.Checkout;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +36,7 @@ public class OrderTempInfoState {
     }
 
     @JsonIgnore
-    public void removeCheckout(Long customerId) {
+    public void removeSingleCheckout(Long customerId) {
         this.checkout.remove(customerId);
     }
 

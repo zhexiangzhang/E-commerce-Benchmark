@@ -3,6 +3,7 @@ package Marketplace.Funs;
 import static Marketplace.Types.Messages.USER_LOGIN_JSON_TYPE;
 import static Marketplace.Types.Messages.USER_PROFILE_JSON_TYPE;
 
+import Marketplace.DummyPaymentServiceService;
 import Marketplace.Types.Entity.TmpUserLogin;
 import Marketplace.Types.Entity.TmpUserPofile;
 import Marketplace.Constant.Constants;
@@ -10,6 +11,8 @@ import Marketplace.Constant.Constants;
 import org.apache.flink.statefun.sdk.java.*;
 import org.apache.flink.statefun.sdk.java.message.Message;
 import org.apache.flink.statefun.sdk.java.message.MessageBuilder;
+import org.apache.flink.statefun.sdk.java.types.Types;
+
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,6 +31,8 @@ public class TempUserLoginFn implements StatefulFunction{
             .withSupplier(TempUserLoginFn::new)
             .build();
 
+    DummyPaymentServiceService dummyPaymentService = new DummyPaymentServiceService();
+
     @Override
     public CompletableFuture<Void> apply(Context context, Message message){
         if (message.is(USER_LOGIN_JSON_TYPE)){
@@ -35,13 +40,17 @@ public class TempUserLoginFn implements StatefulFunction{
 
             int seen = context.storage().get(SEEN).orElse(0);
             context.storage().set(SEEN, seen + 1);
-
+            System.out.println("function: tempUserLoginFn, seen: " + tmpUserLogin.getUsername() + " " + seen);
             final TmpUserPofile tmpUserPofile = new TmpUserPofile(tmpUserLogin.getUsername(), seen + 1);
-
             context.send(MessageBuilder.forAddress(TempGreetFn.TYPE, tmpUserLogin.getUserId())
                     .withCustomType(USER_PROFILE_JSON_TYPE, tmpUserPofile)
                     .build());
+
+            //  调用外部服务
+        }  else if (message.is(Types.stringType())) {
+            System.out.println("function: tempUserLoginFn, message: CYFCFY");
         }
+
 
         return context.done();
     }

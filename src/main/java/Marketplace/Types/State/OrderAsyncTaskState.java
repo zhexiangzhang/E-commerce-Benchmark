@@ -115,9 +115,13 @@ public class OrderAsyncTaskState {
     }
 
     @JsonIgnore
-    public void removeTask(long customerId) {
-        attemptResTaskCntList.remove(customerId);
-        attemptResTaskList.remove(customerId);
+    public void removeTask(long customerId, Enums.TaskType taskType) {
+        if (taskType == Enums.TaskType.AttemptReservationsType) {
+            attemptResTaskCntList.remove(customerId);
+            attemptResTaskList.remove(customerId);
+        } else {
+            decisionTaskCntList.remove(customerId);
+            decisionTaskTypeList.remove(customerId);
+        }
     }
-
 }

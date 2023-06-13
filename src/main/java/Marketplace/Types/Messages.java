@@ -1,7 +1,6 @@
 package Marketplace.Types;
 
 import Marketplace.Constant.Constants;
-import Marketplace.Types.Entity.Checkout;
 import Marketplace.Types.Entity.TmpUserLogin;
 import Marketplace.Types.Entity.TmpUserPofile;
 import com.fasterxml.jackson.databind.ObjectMapper;

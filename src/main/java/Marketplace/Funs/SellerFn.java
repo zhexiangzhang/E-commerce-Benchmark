@@ -38,7 +38,7 @@ public class SellerFn implements StatefulFunction {
             .build();
 
     private String getPartionText(String id) {
-        return String.format("\n[ SellerFn partitionId %s ] \n", id);
+        return String.format(" [ SellerFn partitionId %s ] ", id);
     }
 
     @Override
@@ -84,7 +84,10 @@ public class SellerFn implements StatefulFunction {
             else if (message.is(Types.stringType())) {
                 String result = message.as(Types.stringType());
                 Long sellerId = Long.parseLong(context.self().id());
-                logger.info(String.format("Seller ID: %s", sellerId, result));
+                String log = String.format(getPartionText(context.self().id())
+                                + "sellerId: %s, result: %s\n",
+                        sellerId, result);
+                showLog(log);
             }
 
         } catch (Exception e) {
@@ -139,9 +142,7 @@ public class SellerFn implements StatefulFunction {
         context.storage().set(SELLERSTATE, sellerState);
 
         String log = String.format(getPartionText(context.self().id())
-                        + "init seller success\n"
-                        + "sellerId: %s\n"
-                , seller.getId());
+                        + "init seller success, sellerId: %s\n", seller.getId());
         showLog(log);
     }
 
@@ -264,10 +265,7 @@ public class SellerFn implements StatefulFunction {
         if (sellerAsyncState.checkAddProdTask(productId, sendType)) {
 
             String log = String.format(getPartionText(context.self().id())
-                            + "add product success\n"
-                            + "productId: %s\n"
-                    , productId
-            );
+                            + "add product success, productId: %s\n", productId);
             showLog(log);
         }
         context.storage().set(SELLERASYNCSTATE, sellerAsyncState);
@@ -288,7 +286,7 @@ public class SellerFn implements StatefulFunction {
 
     private void caseUpdatePrice(Context context, Long productId, Enums.SendType sendType) {
         String log = String.format(getPartionText(context.self().id())
-                        + "update price success\n"
+                        + "update price success, "
                         + "productId: %s\n"
                 , productId
         );

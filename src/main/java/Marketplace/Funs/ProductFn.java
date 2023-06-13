@@ -37,7 +37,7 @@ public class ProductFn implements StatefulFunction {
     private static final TypeName ECOMMERCE_EGRESS = TypeName.typeNameOf(Constants.EGRESS_NAMESPACE, "egress");
 
     private String getPartionText(String id) {
-        return String.format("\n[ ProductFn partitionId %s ] \n", id);
+        return String.format("[ ProductFn partitionId %s ] ", id);
     }
     private String getPartionTextInline(String id) {
         return String.format("\n[ ProductFn partitionId %s ] ", id);
@@ -79,7 +79,7 @@ public class ProductFn implements StatefulFunction {
 
     private void showLog(String log) {
 //        logger.info(log);
-        System.out.print(log);
+        System.out.println(log);
     }
 
     private ProductState getProductState(Context context) {
@@ -102,6 +102,7 @@ public class ProductFn implements StatefulFunction {
         Product[] products = productState.getProductsOfSeller(sellerId);
         sendTaskResToSeller(context, products, Enums.TaskType.GetAllProductsType);
         String log = String.format(getPartionTextInline(context.self().id())
+                + " #sub-task# "
                 + "get all products belongs to seller success, "
                 + "number of products = " + (products.length)
                 , sellerId);
@@ -137,9 +138,8 @@ public class ProductFn implements StatefulFunction {
         context.storage().set(PRODUCTSTATE, productState);
 
         String log = getPartionText(context.self().id())
-                + "add product success\n"
-                + "product Id : " + product.getId()
-                + "\n";
+                + " #sub-task# "
+                + "add product success, " + "product Id : " + product.getId() + "\n";
         showLog(log);
 
         sendTaskResToSeller(context, product, Enums.TaskType.AddProductType);
@@ -194,7 +194,7 @@ public class ProductFn implements StatefulFunction {
         String log = getPartionText(context.self().id())
                 + "update product success\n"
                 + "product Id : " + product.getId()
-                + "new price : " + product.getPrice()
+                + " new price : " + product.getPrice()
                 + "\n";
         showLog(log);
 

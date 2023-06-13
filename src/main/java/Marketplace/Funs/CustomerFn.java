@@ -1,10 +1,12 @@
 package Marketplace.Funs;
 
 import Common.Entity.Customer;
+import Common.Entity.Order;
 import Common.Entity.Seller;
 import Marketplace.Constant.Constants;
-import Marketplace.Types.MsgToCustomer.GetCustomer;
-import Marketplace.Types.MsgToCustomer.InitCustomer;
+import Marketplace.Constant.Enums;
+import Marketplace.Types.MsgToCustomer.*;
+import Marketplace.Types.MsgToPaymentFn.FailOrder;
 import Marketplace.Types.MsgToSeller.GetSeller;
 import Marketplace.Types.MsgToSeller.InitSeller;
 import Marketplace.Types.State.CustomerState;
@@ -30,7 +32,7 @@ public class CustomerFn implements StatefulFunction {
             .build();
 
     private String getPartionText(String id) {
-        return String.format("\n[ CustomerFn partitionId %s ] \n", id);
+        return String.format("[ CustomerFn partitionId %s ] ", id);
     }
 
     @Override
@@ -43,6 +45,12 @@ public class CustomerFn implements StatefulFunction {
             // client ---> seller (get seller type)
             else if (message.is(GetCustomer.TYPE)) {
                 onGetCustomer(context);
+            }
+            // ShippmentFn ---> customer (notify shipped type)
+            // OrderFn / PaymentFn ---> customer (notify failed payment type)
+            // PaymentFn ---> customer (notify success payment type)
+            else if (message.is(NotifyCustomer.TYPE)) {
+                onhandleNotifyCustomer(context, message);
             }
         } catch (Exception e) {
             System.out.println("Exception in CustomerFn !!!!!!!!!!!!!!!!");
@@ -92,6 +100,49 @@ public class CustomerFn implements StatefulFunction {
                 + customer.toString()
                 + "\n"
         );
+        showLog(log);
+    }
+
+    private void onhandleNotifyCustomer(Context context, Message message) {
+        CustomerState customerState = getCustomerState(context);
+        Customer customer = customerState.getCustomer();
+
+        NotifyCustomer notifyCustomer = message.as(NotifyCustomer.TYPE);
+        Order order = notifyCustomer.getOrder();
+        Enums.NotificationType notificationType = notifyCustomer.getNotifyType();
+
+        String notificationInfo = "";
+        int statistic = 0;
+        String statisticInfo = "";
+
+        switch (notificationType) {
+            case notify_shipment:
+                customer.setPendingDeliveriesCount(customer.getPendingDeliveriesCount() + 1);
+                notificationInfo = "[ notify shipment ] ";
+                statistic = customer.getPendingDeliveriesCount();
+                statisticInfo = "pending deliveries count :";
+                break;
+            case notify_success_payment:
+                customer.setSuccessPaymentCount(customer.getSuccessPaymentCount() + 1);
+                notificationInfo = "[ notify success payment ] ";
+                statistic = customer.getSuccessPaymentCount();
+                statisticInfo = "successful payment count : ";
+                break;
+            // use in 2 case: fail order and fail payment
+            case notify_failed_payment:
+                customer.setFailedPaymentCount(customer.getFailedPaymentCount() + 1);
+                notificationInfo = "[ notify failed payment ] ";
+                statistic = customer.getFailedPaymentCount();
+                statisticInfo = "failed payment count : ";
+                break;
+        }
+
+        context.storage().set(CUSTOMERSTATE, customerState);
+        String log = String.format(getPartionText(context.self().id())
+                        + notificationInfo
+                        + "customer ID: " + customer.getCustomerId() + "\n"
+                        + statisticInfo + statistic + "\n"
+                        + "order" + order.toString() + "\n");
         showLog(log);
     }
 }
