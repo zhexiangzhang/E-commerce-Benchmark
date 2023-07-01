@@ -56,22 +56,7 @@ public class TempGreetFn implements StatefulFunction {
 //            );
 
 
-            return CompletableFuture.allOf(ageResult).whenCompleteAsync(
-                    (result, throwable) -> {
-                        System.out.println("【main】 async remote call complete " + userPofile.getUsername() + " result: " + result);
-                        // 在异步操作完成后进行处理
-                        // 处理异步操作的结果或执行其他操作
-                        final Optional<Address> caller = context.caller();
-                        context.send(
-                                MessageBuilder.forAddress(caller.get())
-                                        .withCustomType(Types.stringType(), "async")
-                                        .build());
-                        System.out.println("------------------");
-                    }
-            );
-
-
-//            ageResult.whenComplete(
+//            return CompletableFuture.allOf(ageResult).whenCompleteAsync(
 //                    (result, throwable) -> {
 //                        System.out.println("【main】 async remote call complete " + userPofile.getUsername() + " result: " + result);
 //                        // 在异步操作完成后进行处理
@@ -84,6 +69,21 @@ public class TempGreetFn implements StatefulFunction {
 //                        System.out.println("------------------");
 //                    }
 //            );
+
+
+            ageResult.whenComplete(
+                    (result, throwable) -> {
+                        System.out.println("【main】 async remote call complete " + userPofile.getUsername() + " result: " + result);
+                        // 在异步操作完成后进行处理
+                        // 处理异步操作的结果或执行其他操作
+                        final Optional<Address> caller = context.caller();
+                        context.send(
+                                MessageBuilder.forAddress(caller.get())
+                                        .withCustomType(Types.stringType(), "async")
+                                        .build());
+                        System.out.println("------------------");
+                    }
+            );
 
 //            System.out.println("【main】 done + " + userPofile.getUsername());
 //            for (int i = 0; i < 10; i++) {

@@ -18,12 +18,14 @@ import java.time.LocalDateTime;
 public class Shipment {
     @JsonProperty("shipmentId") private long shipmentId;
     @JsonProperty("orderId") private long orderId;
+    @JsonProperty("orderPartition") private long orderPartition;
     @JsonProperty("customerId") private long customerId;
     @JsonProperty("name") private String name;
     @JsonProperty("packageCnt") private int packageCnt;
     @JsonProperty("address") private String address;
     @JsonProperty("zipCode") private String zipCode;
-    @JsonProperty("packageStatus") private Enums.PackageStatus packageStatus;
+//    @JsonProperty("packageStatus") private Enums.PackageStatus packageStatus;
+    @JsonProperty("packageStatus") String packageStatus;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -33,15 +35,19 @@ public class Shipment {
     public Shipment(
             @JsonProperty("shipmentId") long shipmentId,
             @JsonProperty("orderId") long orderId,
+            @JsonProperty("orderPartition") long orderPartition,
             @JsonProperty("customerId") long customerId,
             @JsonProperty("name") String name,
             @JsonProperty("packageCnt") int packageCnt,
             @JsonProperty("address") String address,
             @JsonProperty("zipCode") String zipCode,
             @JsonProperty("requestDate") LocalDateTime requestDate,
-            @JsonProperty("packageStatus") Enums.PackageStatus packageStatus) {
+//            @JsonProperty("packageStatus") Enums.PackageStatus packageStatus
+            @JsonProperty("packageStatus") String packageStatus
+    ) {
         this.shipmentId = shipmentId;
         this.orderId = orderId;
+        this.orderPartition = orderPartition;
         this.customerId = customerId;
         this.name = name;
         this.packageCnt = packageCnt;

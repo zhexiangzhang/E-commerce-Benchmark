@@ -58,6 +58,13 @@ public class Enums {
     {
         notify_failed_payment,
         notify_success_payment,
-        notify_shipment
+        notify_shipment,
+        notfiy_delivered
+    }
+
+    public enum ShipmentStatus
+    {
+        CONCLUDED,
+        DELIVERY_IN_PROGRESS
     }
 }

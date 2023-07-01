@@ -15,11 +15,10 @@ import lombok.Data;
 public class BasketItem {
 
     @JsonProperty("productId") private long productId;
-//    @JsonProperty("sellerId") private long sellerId;
+    @JsonProperty("sellerId") private long sellerId;
     @JsonProperty("unitPrice") private double unitPrice;
 //    @JsonProperty("oldUnitPrice") private double oldUnitPrice;
 //    @JsonProperty("freightValue") private double freightValue; //运费
     @JsonProperty("quantity") private int quantity;
 //    @JsonProperty("unavailable") private boolean unavailable;
-
 }

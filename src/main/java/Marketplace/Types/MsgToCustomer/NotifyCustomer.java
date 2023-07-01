@@ -26,6 +26,7 @@ public class NotifyCustomer {
     @JsonProperty("customerId") private long customerId;
     @JsonProperty("order") private Order order;
     @JsonProperty("notifyType") private Enums.NotificationType notifyType;
+    @JsonProperty("numDeliveries") private int numDeliveries = 0;
 
     @JsonCreator
     public NotifyCustomer(@JsonProperty("customerId") long customerId,

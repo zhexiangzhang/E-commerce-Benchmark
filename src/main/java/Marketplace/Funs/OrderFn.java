@@ -348,6 +348,7 @@ public class OrderFn implements StatefulFunction {
                 orderId,
                 i,
                 item.getProductId(),
+                item.getSellerId(),
                 item.getUnitPrice(),
                 item.getQuantity(),
                 item.getQuantity() * item.getUnitPrice()
@@ -438,14 +439,17 @@ public class OrderFn implements StatefulFunction {
                 break;
         }
 
-        long historyId = generateNextOrderHistoryID(context);
-        OrderHistory orderHistory = new OrderHistory(historyId, now, status);
-        orderHistories.get(orderId).add(orderHistory);
+        if (status != Enums.OrderStatus.CANCLED) {
+            long historyId = generateNextOrderHistoryID(context);
+            OrderHistory orderHistory = new OrderHistory(historyId, now, status);
+            orderHistories.get(orderId).add(orderHistory);
+        }
+
         context.storage().set(ORDERSTATE, orderState);
 
         String log = getPartionText(context.self().id())
                 + "update order status, orderId: " + orderId + ", oldStatus: " + oldStatus + ", newStatus: " + status + "\n";
-        showLogPrt(log);
+        showLog(log);
     }
 }
 
