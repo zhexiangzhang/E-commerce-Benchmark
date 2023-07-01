@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class DummyPaymentServiceService implements PaymentService {
+public class DummyPaymentServiceService {
 
     public CompletableFuture<Boolean> ContactESP(CustomerCheckout customerCheckout, BigDecimal value) {
         return CompletableFuture.supplyAsync( // non-blocking

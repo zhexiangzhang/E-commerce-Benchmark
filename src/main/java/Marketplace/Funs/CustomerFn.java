@@ -117,7 +117,8 @@ public class CustomerFn implements StatefulFunction {
 
         switch (notificationType) {
             case notify_shipment:
-                customer.setPendingDeliveriesCount(customer.getPendingDeliveriesCount() + 1);
+                int numberDeliveries = notifyCustomer.getNumDeliveries();
+                customer.setPendingDeliveriesCount(customer.getPendingDeliveriesCount() + numberDeliveries);
                 notificationInfo = "[ notify shipment ] ";
                 statistic = customer.getPendingDeliveriesCount();
                 statisticInfo = "pending deliveries count :";
@@ -135,14 +136,25 @@ public class CustomerFn implements StatefulFunction {
                 statistic = customer.getFailedPaymentCount();
                 statisticInfo = "failed payment count : ";
                 break;
+            case notfiy_delivered:
+                int numberDeliveries_ = notifyCustomer.getNumDeliveries();
+                customer.setPendingDeliveriesCount(customer.getPendingDeliveriesCount() - numberDeliveries_);
+                customer.setDeliveryCount(customer.getDeliveryCount() + 1);
+                notificationInfo = " notify delivered ";
+                statistic = customer.getPendingDeliveriesCount();
+                statisticInfo = "pending deliveries count : ";
+                break;
         }
 
         context.storage().set(CUSTOMERSTATE, customerState);
         String log = String.format(getPartionText(context.self().id())
                         + notificationInfo
-                        + "customer ID: " + customer.getCustomerId() + "\n"
+                        + ", customer ID: " + customer.getCustomerId() + ", "
                         + statisticInfo + statistic + "\n"
-                        + "order" + order.toString() + "\n");
+                        );
+        if (order != null) {
+            log += "order ID: " + order.toString() + "\n";
+        }
         showLog(log);
     }
 }

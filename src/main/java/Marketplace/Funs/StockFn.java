@@ -165,6 +165,8 @@ public class StockFn implements StatefulFunction {
 
         Enums.TaskType taskType = checkoutResv.getTaskType();
 
+        System.out.println("StockFn onHandleCheckoutResv, checkoutResv: " + checkoutResv.getTaskType());
+
         switch (taskType) {
             case AttemptReservationsType:
                 Enums.ItemStatus itemStatus = onAtptResvReq(context, productId, quantity, customerId);
@@ -179,6 +181,7 @@ public class StockFn implements StatefulFunction {
             default:
                 break;
         }
+
 
         sendMessageToCaller(
                 context,

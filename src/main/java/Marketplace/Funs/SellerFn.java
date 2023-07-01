@@ -115,12 +115,14 @@ public class SellerFn implements StatefulFunction {
         SellerState sellerState = getSellerState(context);
         SellerAsyncState sellerAsyncState = getSellerAsyncState(context);
 //        给每个partition发送消息
+        // TODO: 6/21/2023 如果要求这里也向driver发送信息的话要注意，可能要把查询也加入unique id
         if (sellerAsyncState.isQueryProdTaskInProcess()) {
             String log = String.format(getPartionText(context.self().id())
                             + "get products task is in process, please wait....\n"
                     );
             showLog(log);
-        } else {
+        }
+        else {
             Long sellerId = sellerState.getSeller().getId();
             for (int i = 0; i < Constants.nProductPartitions; i++) {
                 sendMessage(context,

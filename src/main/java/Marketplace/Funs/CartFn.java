@@ -93,7 +93,6 @@ public class CartFn implements StatefulFunction {
         cartState.addItem(item.getProductId(), item);
         context.storage().set(CARTSTATE, cartState);
 
-
         String log = String.format(getPartionText(context.self().id())
                         + "Item {%s} add to cart success\n"
                 , item.getProductId());

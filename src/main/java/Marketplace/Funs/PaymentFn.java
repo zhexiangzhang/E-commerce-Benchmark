@@ -4,7 +4,7 @@ import Common.Entity.*;
 import Marketplace.Constant.Constants;
 import Marketplace.Constant.Enums;
 import Marketplace.DummyPaymentServiceService;
-import Marketplace.PaymentService;
+//import Marketplace.PaymentService;
 import Marketplace.Types.Messages;
 import Marketplace.Types.MsgToCartFn.CheckoutCartResult;
 import Marketplace.Types.MsgToCustomer.NotifyCustomer;
@@ -43,7 +43,7 @@ public class PaymentFn implements StatefulFunction {
             .withValueSpecs(PAYMENT_ASYNC_TASK_STATE, PAYMENT_STATE)
             .build();
 
-    PaymentService paymentService = new DummyPaymentServiceService();
+//    PaymentService paymentService = new DummyPaymentServiceService();
 
     @Override
     public CompletableFuture<Void> apply(Context context, Message message) throws Throwable {
@@ -118,17 +118,17 @@ public class PaymentFn implements StatefulFunction {
         context.storage().set(PAYMENT_ASYNC_TASK_STATE, paymentAsyncTaskState_);
 
         // Call the asynchronous payment processing method
-        CompletableFuture<Boolean> approved = paymentService.ContactESP(customerCheckout, total);
-
-        approved.whenComplete(
-                (result, throwable) -> {
-                    // TODO: 6/12/2023  the code below need to be fixed, context in the field : 
-                    // TODO: 6/12/2023 noFurtherModificationsAllowed
-                }
-        );
+//        CompletableFuture<Boolean> approved = paymentService.ContactESP(customerCheckout, total);
+//
+//        approved.whenComplete(
+//                (result, throwable) -> {
+//                    // TODO: 6/12/2023  the code below need to be fixed, context in the field :
+//                    // TODO: 6/12/2023 noFurtherModificationsAllowed
+//                }
+//        );
 
         // ========================================================================
-        boolean result = false; // assume always success
+        boolean result = true; // assume always success
 
         long orderId = order.getId();
 
